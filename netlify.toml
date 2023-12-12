@@ -3,3 +3,14 @@
 
 [dev]
   publish = "dist"
+  
+[[headers]]
+    for = "/functions/*"
+    [headers.values]
+        Access-Control-Allow-Origin = "*"
+
+
+[[redirects]]
+    to="/.netlify/functions/api/:splat"
+    from="/*"
+    status=200

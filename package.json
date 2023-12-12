@@ -1,7 +1,7 @@
 {
   "name": "ceylonhandicraftBackend",
   "version": "1.0.0",
-  "description": "Handicraft Ecom project",
+  "description": "",
   "main": "index.js",
   "scripts": {
     "dev": "nodemon src/api.js",
@@ -13,21 +13,18 @@
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.20.2",
-    "config": "^3.3.9",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
     "http-status-codes": "^2.2.0",
-    "joi": "^17.10.2",
+    "joi": "^17.11.0",
     "jsonwebtoken": "^9.0.1",
     "mongoose": "^8.0.3",
-    "netlify-lambda": "^2.0.16",
+    "netlify-lambda": "^2.0.15",
     "nodemailer": "^6.9.4",
     "serverless-http": "^3.2.0",
-    "uuid": "^9.0.0"
-  },
-  "devDependencies": {
-    "nodemon": "^3.0.1",
-    "terser": "^3.14.1"
+    "uuid": "^9.0.0",
+    "nodemon": "^3.0.1"
+
   }
 }
