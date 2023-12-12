@@ -1,0 +1,7 @@
+node_modules
+.env
+
+config/development.json
+config/production.json
+
+public/product-images
