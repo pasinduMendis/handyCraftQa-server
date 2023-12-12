@@ -2,7 +2,7 @@
   "name": "ceylon-handicraft-backend",
   "version": "1.0.0",
   "description": "Handicraft Ecom project",
-  "main": "app.js",
+  "main": "api.js",
   "scripts": {
     "dev": "nodemon src/api.js",
     "start": "netlify-lambda serve src",
@@ -25,7 +25,6 @@
     "nodemailer": "^6.9.4",
     "serverless-http": "^3.2.0",
     "uuid": "^9.0.0",
-    "webpack": "^5.89.0"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"
