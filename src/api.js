@@ -1,7 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 var bodyParser = require("body-parser");
-//const path = require("path");
+const path = require("path");
 const serverless = require('serverless-http')
 const mongoose = require('mongoose')
 require("dotenv").config();
@@ -9,7 +9,7 @@ require("dotenv").config();
 
 
 mongoose
-  .connect(process.env.DBCONFIG, { useNewUrlParser: true, useUnifiedTopology: true })
+  .connect(process.env.DBCONFIG)
   .then(
     () => {
       console.log('Database is successfully connected')
@@ -25,7 +25,7 @@ const app = express();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-//app.use(express.static(path.join(__dirname, "public")));
+app.use(express.static(path.join(__dirname, "public")));
 
 app.use(cors());
 
