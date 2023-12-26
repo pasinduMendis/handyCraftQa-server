@@ -12,7 +12,7 @@
     "ignore": [
       "**/the-filename.js"
     ]
-  }
+  },
   "author": "",
   "license": "ISC",
   "dependencies": {
