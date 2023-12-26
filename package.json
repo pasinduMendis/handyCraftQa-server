@@ -8,6 +8,11 @@
     "start": "netlify-lambda serve src",
     "build": "netlify-lambda build src"
   },
+  "standard": {
+    "ignore": [
+      "**/the-filename.js"
+    ]
+  }
   "author": "",
   "license": "ISC",
   "dependencies": {
