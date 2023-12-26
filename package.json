@@ -1,8 +1,8 @@
 {
-  "name": "ceylon-handicraft",
+  "name": "server",
   "version": "1.0.0",
-  "description": "Handicraft Ecom project",
-  "main": "app.js",
+  "description": "",
+  "main": "index.js",
   "scripts": {
     "dev": "nodemon src/app.js",
     "start": "netlify-lambda serve src",
