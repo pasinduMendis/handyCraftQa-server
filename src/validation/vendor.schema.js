@@ -25,7 +25,24 @@ const nameSchema = Joi.object({
   lastName: Joi.string().required(),
 });
 
-const vendorSchema = Joi.object({
+const basicRegistrationSchema = Joi.object({
+  name: nameSchema.required(),
+  email: emailSchema.required(),
+  password: Joi.string().required(),
+});
+
+const advancedRegistrationSchema = Joi.object({
+  identity: identitySchema.required(),
+  phone: phoneSchema.required(),
+  address: addressSchema.required(),
+});
+
+const loginSchema = Joi.object({
+  email: Joi.string().required(),
+  password: Joi.string().required(),
+});
+
+const updateSchema = Joi.object({
   name: nameSchema,
   email: emailSchema,
   identity: identitySchema,
@@ -33,41 +50,25 @@ const vendorSchema = Joi.object({
   address: addressSchema,
 });
 
-const basicVendorSchema = Joi.object({
-  name: nameSchema.required(),
-  email: emailSchema.required(),
-  password: Joi.string().required(),
-});
-
-const advancedVendorSchema = Joi.object({
-  identity: identitySchema.required(),
-  phone: phoneSchema.required(),
-  address: addressSchema.required(),
-});
-
-const vendorLoginSchema = Joi.object({
-  email: Joi.string().required(),
-  password: Joi.string().required(),
-});
-
-function validateBasicVendor(vendor) {
-  return basicVendorSchema.validate(vendor);
+function validateBasicRegistration(vendor) {
+  return basicRegistrationSchema.validate(vendor);
 }
 
-function validateAdvancedVendor(vendor) {
-  return advancedVendorSchema.validate(vendor);
+function validateAdvancedRegistration(vendor) {
+  return advancedRegistrationSchema.validate(vendor);
 }
 
-function validateVendor(vendor) {
-  return vendorSchema.validate(vendor);
+function validateLogin(vendor) {
+  return loginSchema.validate(vendor);
 }
-function validateVendorLogin(vendor) {
-  return vendorLoginSchema.validate(vendor);
+
+function validateUpdate(vendor) {
+  return updateSchema.validate(vendor);
 }
 
 module.exports = {
-  validateBasicVendor,
-  validateAdvancedVendor,
-  validateVendorLogin,
-  validateVendor,
+  validateBasicRegistration,
+  validateAdvancedRegistration,
+  validateLogin,
+  validateUpdate,
 };

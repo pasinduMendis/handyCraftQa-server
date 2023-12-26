@@ -1,7 +1,3 @@
-require("dotenv").config();
-
-require("dotenv").config();
-
 const logoUrl =
   "https://openseauserdata.com/files/e06001f351f2ae5c3927d5d730346e87.jpg";
 
@@ -41,7 +37,7 @@ Handicraft Sri Lanka Team`;
 `;
 
   return {
-    from: process.env.HOST_EMAIL,
+    from: "handicraftceylondev@gmail.com",
     to: vendorEmail,
     subject: subject,
     text: text,
@@ -49,4 +45,4 @@ Handicraft Sri Lanka Team`;
   };
 };
 
-module.exports = { emailTemplate: emailTemplate };
+module.exports = { emailTemplate };

@@ -1,5 +1,5 @@
-const { ErrorResponse } = require("../utils/response.util");
-const { verify } = require("../utils/session.util");
+const { ErrorResponse } = require("../utils/response.utils");
+const { verify } = require("../utils/session.utils.js");
 
 const authorize = async (req, res, next) => {
   try {

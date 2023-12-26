@@ -1,5 +1,4 @@
 const mongoose = require("mongoose");
-const { transformToModel } = require("../services/utils");
 
 const emailSchema = new mongoose.Schema({
   email: { type: String, required: true },
@@ -61,10 +60,6 @@ const VendorSchema = new mongoose.Schema(
   },
   {
     methods: {
-      toModel() {
-        return transformToModel(this);
-      },
-
       verifyEmail() {
         this.email.isVerified = true;
         return this;
@@ -114,6 +109,4 @@ const VendorSchema = new mongoose.Schema(
   }
 );
 
-const Vendor = mongoose.model("Vendor", VendorSchema);
-
-module.exports = Vendor;
+module.exports = mongoose.model("Vendor", VendorSchema);

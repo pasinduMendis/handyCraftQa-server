@@ -1,23 +1,23 @@
-const { businessService } = require("../services/business.service");
-const { vendorService } = require("../services/vendor.service");
-const { SuccessResponse, ErrorResponse } = require("../utils/response.util");
-const { validateBusiness } = require("../validation/business.schema");
+const Business = require("../models/Business.model");
+const Vendor = require("../models/Vendor.model");
+const { SuccessResponse, ErrorResponse } = require("../utils/response.utils");
 
 const create = async (req, res) => {
   try {
     const user = req.user;
-    const { error, value } = validateBusiness(req.body);
-    if (error) {
-      return new ErrorResponse(res).badRequest(error.message);
-    }
-    const business = await businessService.create({
-      ...value,
+    const business = await Business.create({
+      ...req.body,
       vendorId: user.id,
     });
-    const vendor = await vendorService.get(user.id);
+
+    const vendor = await Vendor.findById(user.id);
+    if (!vendor) {
+      return new ErrorResponse(res).badRequest("Vendor not found");
+    }
+
     await vendor.completeBusinessRegistration().save();
     return new SuccessResponse(res).created({
-      business: business.toModel(),
+      business: business,
     });
   } catch (error) {
     return new ErrorResponse(res).badRequest(error.message);
@@ -26,21 +26,8 @@ const create = async (req, res) => {
 
 const get = async (req, res) => {
   try {
-    const id = req.params.id;
-
-    const forBrn = await businessService.isExistForBrn(id);
-    if (forBrn) {
-      const business = await businessService.getByBrn(id);
-      return new SuccessResponse(res).ok({ business: business.toModel() });
-    }
-
-    const forId = await businessService.isExist(id);
-    if (forId) {
-      const business = await businessService.get(id);
-      return new SuccessResponse(res).created({ business: business.toModel() });
-    }
-
-    return new ErrorResponse(res).internalServerError("Business not found");
+    const business = await Business.findById(req.params.id);
+    return new SuccessResponse(res).ok({ business: business });
   } catch (error) {
     return new ErrorResponse(res).badRequest(error.message);
   }
@@ -48,9 +35,9 @@ const get = async (req, res) => {
 
 const getAll = async (req, res) => {
   try {
-    const businesses = await businessService.getAll();
+    const businesses = await Business.find();
     return new SuccessResponse(res).ok({
-      businesses: businesses.map((business) => business.toModel()),
+      businesses: businesses,
     });
   } catch (error) {
     return new ErrorResponse(res).badRequest(error.message);
@@ -59,17 +46,12 @@ const getAll = async (req, res) => {
 
 const update = async (req, res) => {
   try {
-    const user = req.user;
-    const { error, value } = validateBusiness(req.body);
-    if (error) {
-      return new ErrorResponse(res).badRequest(error.message);
-    }
-    const business = await businessService.getByVendorId(user.id);
-    const updatedBusiness = await businessService.update({
-      ...value,
-      id: business.id,
-    });
-    return new SuccessResponse(res).ok({ business: updatedBusiness.toModel() });
+    const updatedBusiness = await Business.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true }
+    );
+    return new SuccessResponse(res).ok({ business: updatedBusiness });
   } catch (error) {
     return new ErrorResponse(res).badRequest(error.message);
   }
@@ -77,13 +59,11 @@ const update = async (req, res) => {
 
 const remove = async (req, res) => {
   try {
-    await businessService.remove(req.params.id);
+    await Business.findByIdAndDelete(req.params.id);
     return new SuccessResponse(res).ok();
   } catch (error) {
     return new ErrorResponse(res).badRequest(error.message);
   }
 };
 
-module.exports = {
-  businessController: { create, update, get, getAll, remove },
-};
+module.exports = { create, update, get, getAll, remove };

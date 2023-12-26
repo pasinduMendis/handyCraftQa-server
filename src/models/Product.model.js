@@ -1,34 +1,33 @@
 const mongoose = require("mongoose");
-const Schema = mongoose.Schema;
 
-const imageSchema = new Schema({
+const imageSchema = new mongoose.Schema({
   src: { type: String, required: true },
   isMain: { type: Boolean, required: true, default: false },
 });
 
-const weightSchema = new Schema({
+const weightSchema = new mongoose.Schema({
   value: { type: Number, required: true },
   unit: { type: String, required: true },
 });
 
-const dimensionsSchema = new Schema({
+const dimensionsSchema = new mongoose.Schema({
   value_x: { type: Number, required: true },
   value_y: { type: Number, required: true },
   unit: { type: String, required: true },
 });
 
-const productSchema = new Schema({
+const productSchema = new mongoose.Schema({
   name: {
     type: String,
     required: true,
   },
   category: {
-    type: Schema.Types.ObjectId,
+    type: mongoose.Schema.Types.ObjectId,
     ref: "Category",
     required: true,
   },
   business: {
-    type: Schema.Types.ObjectId,
+    type: mongoose.Schema.Types.ObjectId,
     ref: "Business",
     required: true,
   },

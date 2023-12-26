@@ -16,7 +16,7 @@ const imageSchema = Joi.object({
   isMain: Joi.boolean().required(),
 });
 
-const productCreateSchema = Joi.object({
+const createSchema = Joi.object({
   name: Joi.string().required(),
   category: Joi.string().required(),
   manufacturer: Joi.string().required(),
@@ -27,7 +27,7 @@ const productCreateSchema = Joi.object({
   images: Joi.array().items(imageSchema).required(),
 });
 
-const productUpdateSchema = Joi.object({
+const updateSchema = Joi.object({
   name: Joi.string(),
   manufacturer: Joi.string(),
   price: Joi.string(),
@@ -36,15 +36,15 @@ const productUpdateSchema = Joi.object({
   dimensions: dimensionsSchema,
 });
 
-function validateProductCreate(product) {
-  return productCreateSchema.validate(product);
+function validateCreate(product) {
+  return createSchema.validate(product);
 }
 
-function validateProductUpdate(product) {
-  return productUpdateSchema.validate(product);
+function validateUpdate(product) {
+  return updateSchema.validate(product);
 }
 
 module.exports = {
-  validateProductCreate,
-  validateProductUpdate,
+  validateCreate,
+  validateUpdate,
 };

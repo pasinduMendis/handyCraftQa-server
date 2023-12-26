@@ -1,5 +1,3 @@
-const { ErrorResponse } = require("../utils/response.util");
+const { ErrorResponse } = require("../utils/response.utils");
 
-const notFound = (req, res) => new ErrorResponse(res).notFound();
-
-module.exports = notFound;
+module.exports = (req, res) => new ErrorResponse(res).notFound();

@@ -23,32 +23,51 @@ const nameSchema = Joi.object({
 
 const cartItemSchema = Joi.object({
   productId: Joi.string().required(),
-  quantity: Joi.number().integer().min(1).required(),
+  quantity: Joi.number().integer().min(1).default(1),
 });
 
-const userSchema = Joi.object({
+const updateSchema = Joi.object({
   name: nameSchema,
-  email: emailSchema,
   phone: phoneSchema,
   address: addressSchema,
-  password: Joi.string().required(),
-  cart: Joi.array().items(cartItemSchema), 
 });
 
-const userLoginSchema = Joi.object({
+const loginSchema = Joi.object({
   email: Joi.string().required(),
   password: Joi.string().required(),
 });
 
-function validateUser(user) {
-  return userSchema.validate(user);
+const registerSchema = Joi.object({
+  name: nameSchema.required(),
+  email: emailSchema.required(),
+  password: Joi.string().required(),
+  phone: phoneSchema.required(),
+  address: addressSchema.required(),
+});
+
+const updateCartSchema = Joi.object({
+  cart: Joi.array().items(cartItemSchema).required(),
+});
+
+function validateUpdate(user) {
+  return updateSchema.validate(user);
 }
 
-function validateUserLogin(user) {
-  return userLoginSchema.validate(user);
+function validateLogin(user) {
+  return loginSchema.validate(user);
+}
+
+function validateRegister(user) {
+  return registerSchema.validate(user);
+}
+
+function validateUpdateCart(user) {
+  return updateCartSchema.validate(user);
 }
 
 module.exports = {
-  validateUser,
-  validateUserLogin,
+  validateUpdate,
+  validateLogin,
+  validateRegister,
+  validateUpdateCart,
 };

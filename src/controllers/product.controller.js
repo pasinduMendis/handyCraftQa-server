@@ -1,10 +1,10 @@
 const Business = require("../models/Business.model");
-const ProductModel = require("../models/Product.model");
-const { SuccessResponse, ErrorResponse } = require("../utils/response.util");
+const Product = require("../models/Product.model");
+const { SuccessResponse, ErrorResponse } = require("../utils/response.utils");
 
 const get = async (req, res) => {
   try {
-    const product = await ProductModel.findById(req.params.id);
+    const product = await Product.findById(req.params.id);
     return new SuccessResponse(res).ok({ product: product });
   } catch (error) {
     return new ErrorResponse(res).badRequest(error.message);
@@ -13,8 +13,7 @@ const get = async (req, res) => {
 
 const getAll = async (req, res) => {
   try {
-    const query = req.query;
-    const products = await ProductModel.find({ ...query });
+    const products = await Product.find({ ...req.query });
     return new SuccessResponse(res).ok({
       products: products,
     });
@@ -26,7 +25,6 @@ const getAll = async (req, res) => {
 const uploadImages = async (req, res) => {
   try {
     const imageCount = parseInt(req.body.count);
-
     const imageArray = [];
     for (let i = 1; i <= imageCount; i++) {
       const isMain = req.body[`isMain${i}`] === "true";
@@ -51,9 +49,8 @@ const uploadImages = async (req, res) => {
 
 const create = async (req, res) => {
   try {
-    const { id } = req.user;
-    const business = await Business.findOne({ vendorId: id });
-    const product = await ProductModel.create({
+    const business = await Business.findOne({ vendorId: req.user.id });
+    const product = await Product.create({
       ...req.body,
       business: business?._id,
     });
@@ -65,14 +62,10 @@ const create = async (req, res) => {
 
 const update = async (req, res) => {
   try {
-    const product = await ProductModel.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      {
-        new: true,
-        runValidators: true,
-      }
-    );
+    const product = await Product.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+      runValidators: true,
+    });
     return new SuccessResponse(res).created({ product: product });
   } catch (error) {
     return new ErrorResponse(res).badRequest(error.message);
@@ -81,13 +74,11 @@ const update = async (req, res) => {
 
 const remove = async (req, res) => {
   try {
-    await ProductModel.findByIdAndDelete(req.params.id);
+    await Product.findByIdAndDelete(req.params.id);
     return new SuccessResponse(res).ok();
   } catch (error) {
     return new ErrorResponse(res).badRequest(error.message);
   }
 };
 
-module.exports = {
-  productController: { get, getAll, create, update, remove, uploadImages },
-};
+module.exports = { get, getAll, create, update, remove, uploadImages };

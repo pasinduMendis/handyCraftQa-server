@@ -1,25 +1,24 @@
-const { reqVerifyEmail } = require("../services/email.service");
-const tokenService = require("../services/email_token.service");
-const { ErrorResponse, SuccessResponse } = require("../utils/response.util");
-const { vendorService } = require("../services/vendor.service");
-const sessionUtil = require("../utils/session.util");
-const { encrypt } = require("../utils/encryption.util");
-const {
-  validateVendor,
-  validateBasicVendor,
-  validateAdvancedVendor,
-  validateVendorLogin,
-} = require("../validation/vendor.schema");
+const { reqVerifyEmail } = require("../utils/email.utils");
+const { ErrorResponse, SuccessResponse } = require("../utils/response.utils");
+const sessionUtil = require("../utils/session.utils.js");
+const { encrypt, isDataMatch } = require("../utils/encryption.utils");
+const Vendor = require("../models/Vendor.model");
+const EmailToken = require("../models/EmailToken.model");
+const crypto = require("crypto");
 
 async function login(req, res) {
   try {
-    const { error, value } = validateVendorLogin(req.body);
+    const vendor = await Vendor.findOne({ "email.email": req.body.email });
 
-    if (error) {
-      return new ErrorResponse(res).badRequest(error.message);
+    if (!vendor) {
+      return new ErrorResponse(res).badRequest("Invalid email or password");
     }
 
-    const vendor = await vendorService.login(value.email, value.password);
+    const isMatch = await isDataMatch(req.body.password, vendor.password);
+
+    if (!isMatch) {
+      return new ErrorResponse(res).badRequest("Invalid email or password");
+    }
 
     const accessToken = sessionUtil.sign(
       new sessionUtil.Payload(
@@ -31,7 +30,7 @@ async function login(req, res) {
     );
 
     return new SuccessResponse(res).ok({
-      vendor: vendor.toModel(),
+      vendor: vendor,
       accessToken: accessToken,
     });
   } catch (error) {
@@ -41,18 +40,15 @@ async function login(req, res) {
 
 async function basicRegistration(req, res) {
   try {
-    const { error, value } = validateBasicVendor(req.body);
-
-    if (error) {
-      return new ErrorResponse(res).badRequest(error.message);
-    }
-
-    const encryptedPassword = await encrypt(value.password);
-    const vendor = await vendorService.create(value, encryptedPassword);
+    const encryptedPassword = await encrypt(req.body.password);
+    const vendor = await Vendor.create({
+      ...req.body,
+      password: encryptedPassword,
+    });
     await vendor.completeBasicRegistration().save();
 
-    return new SuccessResponse(res).ok({
-      vendor: vendor.toModel(),
+    return new SuccessResponse(res).created({
+      vendor: vendor,
     });
   } catch (error) {
     return new ErrorResponse(res).internalServerError(error.message);
@@ -61,19 +57,16 @@ async function basicRegistration(req, res) {
 
 async function advancedRegistration(req, res) {
   try {
-    const user = req.user;
-
-    const { error, value } = validateAdvancedVendor(req.body);
-
-    if (error) {
-      return new ErrorResponse(res).badRequest(error.message);
-    }
-
-    const updatedVendor = await vendorService.update({ ...value, id: user.id });
-    await updatedVendor.completeAdvancedRegistration().save();
-
-    return new SuccessResponse(res).ok({
-      vendor: updatedVendor.toModel(),
+    const vendor = await Vendor.findByIdAndUpdate(
+      req.param.id,
+      {
+        ...req.body,
+      },
+      { new: true }
+    );
+    await vendor?.completeAdvancedRegistration().save();
+    return new SuccessResponse(res).created({
+      vendor: vendor,
     });
   } catch (error) {
     return new ErrorResponse(res).internalServerError(error.message);
@@ -82,9 +75,9 @@ async function advancedRegistration(req, res) {
 
 async function get(req, res) {
   try {
-    const vendor = await vendorService.get(req.params.id);
+    const vendor = await Vendor.findById(req.params.id);
     return new SuccessResponse(res).ok({
-      vendor: vendor.toModel(),
+      vendor: vendor,
     });
   } catch (error) {
     return new ErrorResponse(res).internalServerError(error.message);
@@ -93,9 +86,9 @@ async function get(req, res) {
 
 async function getAll(req, res) {
   try {
-    const vendors = await vendorService.getAll();
+    const vendors = await Vendor.find();
     return new SuccessResponse(res).ok({
-      vendors: vendors.map((vendor) => vendor.toModel()),
+      vendors: vendors,
     });
   } catch (error) {
     return new ErrorResponse(res).internalServerError(error.message);
@@ -104,20 +97,26 @@ async function getAll(req, res) {
 
 async function reqVerificationEmail(req, res) {
   try {
-    const id = req.body.id;
-    const vendor = await vendorService.get(id);
+    const vendor = await Vendor.findById(req.body.id);
 
-    const token = await tokenService.getOrCreate(id);
+    if (!vendor) {
+      return new ErrorResponse(res).badRequest("Vendor not found");
+    }
 
-    await reqVerifyEmail(
-      id,
-      token.token,
-      vendor.email.email,
-      vendor.name.firstName
-    );
-    return new SuccessResponse(res).ok({
-      vendor: vendor.toModel(),
+    const existToken = await EmailToken.findOne({ user: req.body.id });
+
+    if (existToken) {
+      await reqVerifyEmail(vendor.email.email, existToken.token);
+      return new SuccessResponse(res).ok();
+    }
+
+    const hash = crypto.randomBytes(32).toString("hex");
+    const newToken = await EmailToken.create({
+      user: vendor.id,
+      token: hash,
     });
+    await reqVerifyEmail(vendor.email.email, newToken.token);
+    return new SuccessResponse(res).ok();
   } catch (error) {
     return new ErrorResponse(res).internalServerError(error.message);
   }
@@ -125,21 +124,23 @@ async function reqVerificationEmail(req, res) {
 
 async function verifyEmail(req, res) {
   try {
-    const id = req.body.id;
-    const token = req.body.token;
+    const vendor = await Vendor.findById(req.body.id);
 
-    const vendor = await vendorService.get(id);
+    if (!vendor) {
+      return new ErrorResponse(res).badRequest("Vendor not found");
+    }
 
-    const savedToken = await tokenService.getByUserId(id);
-    if (token !== savedToken.token) {
+    const savedToken = await EmailToken.findOne({ user: req.body.id });
+    if (!savedToken) {
+      return new ErrorResponse(res).internalServerError("Token not found");
+    }
+    if (req.body.token !== savedToken.token) {
       return new ErrorResponse(res).internalServerError("Invalid token");
     }
 
-    await tokenService.remove(id);
+    await EmailToken.findByIdAndDelete(savedToken.id);
 
-    await vendor.verifyEmail().save();
-
-    const updatedVendor = await vendorService.update(vendor);
+    const updatedVendor = await vendor.verifyEmail().save();
 
     const accessToken = sessionUtil.sign(
       new sessionUtil.Payload(
@@ -151,8 +152,9 @@ async function verifyEmail(req, res) {
     );
 
     return new SuccessResponse(res).ok({
-      vendor: updatedVendor.toModel(),
+      vendor: updatedVendor,
       accessToken: accessToken,
+      refreshToken: "",
     });
   } catch (error) {
     return new ErrorResponse(res).internalServerError(error.message);
@@ -161,17 +163,15 @@ async function verifyEmail(req, res) {
 
 async function update(req, res) {
   try {
-    const user = req.user;
-
-    const { error, value } = validateVendor(req.body);
-    if (error) {
-      return new ErrorResponse(res).badRequest(error.message);
-    }
-
-    const updatedVendor = await vendorService.update({ ...value, id: user.id });
-
-    return new SuccessResponse(res).ok({
-      vendor: updatedVendor.toModel(),
+    const vendor = await Vendor.findByIdAndUpdate(
+      req.params.id,
+      {
+        ...req.body,
+      },
+      { new: true }
+    );
+    return new SuccessResponse(res).created({
+      vendor: vendor,
     });
   } catch (error) {
     return new ErrorResponse(res).internalServerError(error.message);
@@ -180,24 +180,21 @@ async function update(req, res) {
 
 async function remove(req, res) {
   try {
-    const user = req.user;
-    await vendorService.remove(user.id);
-    return new SuccessResponse(res).ok();
+    await Vendor.findByIdAndDelete(req.params.id);
+    return new SuccessResponse(res).created();
   } catch (error) {
     return new ErrorResponse(res).internalServerError(error.message);
   }
 }
 
 module.exports = {
-  vendorController: {
-    login,
-    basicRegistration,
-    advancedRegistration,
-    get,
-    getAll,
-    reqVerificationEmail,
-    verifyEmail,
-    update,
-    remove,
-  },
+  login,
+  basicRegistration,
+  advancedRegistration,
+  get,
+  getAll,
+  reqVerificationEmail,
+  verifyEmail,
+  update,
+  remove,
 };

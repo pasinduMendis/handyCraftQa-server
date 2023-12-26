@@ -16,5 +16,4 @@ function validateOrder(order) {
 
 module.exports = {
   validateOrder,
-  orderSchema,
 };

@@ -1,10 +1,8 @@
 const mongoose = require("mongoose");
-const Schema = mongoose.Schema;
 
-const emailTokenSchema = new Schema({
-  vendorId: {
-    type: Schema.Types.ObjectId,
-    ref: "Vendor",
+const emailTokenSchema = new mongoose.Schema({
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
     required: true,
   },
   token: {
@@ -13,6 +11,4 @@ const emailTokenSchema = new Schema({
   },
 });
 
-const EmailToken = mongoose.model("EmailToken", emailTokenSchema);
-
-module.exports = EmailToken;
+module.exports = mongoose.model("EmailToken", emailTokenSchema);

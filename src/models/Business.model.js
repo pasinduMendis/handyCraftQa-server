@@ -1,6 +1,4 @@
 const mongoose = require("mongoose");
-const { transformToModel } = require("../services/utils");
-const Schema = mongoose.Schema;
 
 const addressSchema = new mongoose.Schema({
   country: {
@@ -42,7 +40,7 @@ const brcSchema = new mongoose.Schema({
 const businessSchema = new mongoose.Schema(
   {
     vendorId: {
-      type: Schema.Types.ObjectId,
+      type: mongoose.Schema.Types.ObjectId,
       ref: "Vendor",
       required: true,
     },
@@ -58,10 +56,6 @@ const businessSchema = new mongoose.Schema(
   },
   {
     methods: {
-      toModel() {
-        return transformToModel(this);
-      },
-
       async verifyBrc() {
         if (this.brc) {
           this.brc.isVerified = true;
@@ -81,6 +75,4 @@ const businessSchema = new mongoose.Schema(
   }
 );
 
-const Business = mongoose.model("Business", businessSchema);
-
-module.exports = Business;
+module.exports = mongoose.model("Business", businessSchema);

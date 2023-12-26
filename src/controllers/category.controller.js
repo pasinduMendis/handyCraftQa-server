@@ -1,10 +1,9 @@
-const { categoryService } = require("../services/category.service");
-const { SuccessResponse, ErrorResponse } = require("../utils/response.util");
-const { validateCategory } = require("../validation/category.schema");
+const Category = require("../models/Category.model");
+const { SuccessResponse, ErrorResponse } = require("../utils/response.utils");
 
 const get = async (req, res) => {
   try {
-    const category = await categoryService.get(req.params.id);
+    const category = await Category.findById(req.params.id);
     return new SuccessResponse(res).ok({ category: category });
   } catch (error) {
     return new ErrorResponse(res).badRequest(error.message);
@@ -13,7 +12,7 @@ const get = async (req, res) => {
 
 const getAll = async (req, res) => {
   try {
-    const categories = await categoryService.getAll();
+    const categories = await Category.find();
     return new SuccessResponse(res).ok({
       categories: categories,
     });
@@ -24,11 +23,7 @@ const getAll = async (req, res) => {
 
 const create = async (req, res) => {
   try {
-    const { error, value } = validateCategory(req.body);
-    if (error) {
-      return new ErrorResponse(res).badRequest(error.message);
-    }
-    const category = await categoryService.create(value);
+    const category = await Category.create(req.body);
     return new SuccessResponse(res).created({ category: category });
   } catch (error) {
     return new ErrorResponse(res).badRequest(error.message);
@@ -37,12 +32,10 @@ const create = async (req, res) => {
 
 const update = async (req, res) => {
   try {
-    const id = req.params.id;
-    const { error, value } = validateCategory(req.body);
-    if (error) {
-      return new ErrorResponse(res).badRequest(error.message);
-    }
-    const category = await categoryService.update({ ...value, id: id });
+    const category = await Category.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+      runValidators: true,
+    });
     return new SuccessResponse(res).created({ category: category });
   } catch (error) {
     return new ErrorResponse(res).badRequest(error.message);
@@ -51,13 +44,11 @@ const update = async (req, res) => {
 
 const remove = async (req, res) => {
   try {
-    await categoryService.remove(req.params.id);
+    await Category.findByIdAndDelete(req.params.id);
     return new SuccessResponse(res).ok();
   } catch (error) {
     return new ErrorResponse(res).badRequest(error.message);
   }
 };
 
-module.exports = {
-  categoryController: { get, getAll, create, update, remove },
-};
+module.exports = { get, getAll, create, update, remove };

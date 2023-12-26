@@ -1,5 +1,4 @@
 const mongoose = require("mongoose");
-const { transformToModel } = require("../services/utils");
 
 const emailSchema = new mongoose.Schema({
   email: { type: String, required: true },
@@ -38,10 +37,6 @@ const UserSchema = new mongoose.Schema(
   },
   {
     methods: {
-      toModel() {
-        return transformToModel(this);
-      },
-
       verifyEmail() {
         this.email.isVerified = true;
         return this;
@@ -66,21 +61,20 @@ const UserSchema = new mongoose.Schema(
       },
 
       removeFromCart(productId) {
-        const index = this.cart.findIndex((item) => item.productId.toString() === productId.toString());
-      
+        const index = this.cart.findIndex(
+          (item) => item.productId.toString() === productId.toString()
+        );
+
         if (index !== -1) {
           this.cart.splice(index, 1);
         } else {
           throw new Error("Product not found in cart");
         }
-      
+
         return this;
-      }
-      
+      },
     },
   }
 );
 
-const User = mongoose.model("User", UserSchema);
-
-module.exports = User;
+module.exports = mongoose.model("User", UserSchema);

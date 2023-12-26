@@ -14,7 +14,7 @@ const brcSchema = Joi.object({
   file: Joi.string().required(),
 });
 
-const registerBusinessSchema = Joi.object({
+const registerSchema = Joi.object({
   businessName: Joi.string().required(),
   businessType: Joi.string().required(),
   brn: brnSchema.required(),
@@ -25,20 +25,15 @@ const registerBusinessSchema = Joi.object({
 const businessSchema = Joi.object({
   businessName: Joi.string(),
   businessType: Joi.string(),
-  brn: brnSchema,
-  brc: brcSchema,
   address: addressSchema,
 });
 
-function validateRegisterBusiness(business) {
-  return registerBusinessSchema.validate(business);
+function validateRegister(business) {
+  return registerSchema.validate(business);
 }
 
-function validateBusiness(business) {
+function validateUpdate(business) {
   return businessSchema.validate(business);
 }
 
-module.exports = {
-  validateRegisterBusiness,
-  validateBusiness,
-};
+module.exports = { validateRegister, validateUpdate };
